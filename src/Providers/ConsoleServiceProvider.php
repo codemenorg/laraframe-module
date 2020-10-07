@@ -34,6 +34,7 @@ use Codemen\Modules\Commands\RuleMakeCommand;
 use Codemen\Modules\Commands\SeedCommand;
 use Codemen\Modules\Commands\SeedMakeCommand;
 use Codemen\Modules\Commands\ServiceMakeCommand;
+use Codemen\Modules\Commands\ViewMakeCommand;
 use Illuminate\Support\ServiceProvider;
 
 class ConsoleServiceProvider extends ServiceProvider
@@ -74,7 +75,8 @@ class ConsoleServiceProvider extends ServiceProvider
         SeedCommand::class,
         SeedMakeCommand::class,
         ResourceMakeCommand::class,
-        ServiceMakeCommand::class
+        ServiceMakeCommand::class,
+        ViewMakeCommand::class
     ];
 
     /**
