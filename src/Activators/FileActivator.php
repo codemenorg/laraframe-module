@@ -2,13 +2,13 @@
 
 namespace Codemen\Modules\Activators;
 
+use Codemen\Modules\Contracts\ActivatorInterface;
+use Codemen\Modules\Module;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Config\Repository as Config;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Filesystem\Filesystem;
-use Codemen\Modules\Contracts\ActivatorInterface;
-use Codemen\Modules\Module;
 use Illuminate\Support\Facades\Artisan;
 
 class FileActivator implements ActivatorInterface
@@ -158,6 +158,13 @@ class FileActivator implements ActivatorInterface
     public function setActiveByName(string $name, bool $status): void
     {
         $this->modulesStatuses[$name]['isEnabled'] = $status;
+        if (!isset($this->modulesStatuses[$name]['isMigrated'])) {
+            $this->modulesStatuses[$name]['isMigrated'] = false;
+        }
+        if (!isset($this->modulesStatuses[$name]['isSeeded'])) {
+            $this->modulesStatuses[$name]['isSeeded'] = false;
+        }
+
         $this->writeJson();
         $this->flushCache();
     }
@@ -172,10 +179,6 @@ class FileActivator implements ActivatorInterface
 
     public function runMigrations($name)
     {
-        if (!isset($this->modulesStatuses[$name]['isMigrated'])) {
-            $this->modulesStatuses[$name]['isMigrated'] = false;
-        }
-
         if (!$this->modulesStatuses[$name]['isMigrated']) {
             Artisan::call('module:migrate', ['module' => $name]);
             $this->modulesStatuses[$name]['isMigrated'] = true;
@@ -186,10 +189,6 @@ class FileActivator implements ActivatorInterface
 
     public function runDatabaseSeeds($name)
     {
-        if (!isset($this->modulesStatuses[$name]['isSeeded'])) {
-            $this->modulesStatuses[$name]['isSeeded'] = false;
-        }
-
         if (!$this->modulesStatuses[$name]['isSeeded']) {
             Artisan::call('module:seed', ['module' => $name]);
             $this->modulesStatuses[$name]['isSeeded'] = true;
