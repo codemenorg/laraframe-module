@@ -2,6 +2,7 @@
 
 namespace Codemen\Modules\Generators;
 
+use Codemen\Modules\Facades\Module;
 use Illuminate\Config\Repository as Config;
 use Illuminate\Console\Command as Console;
 use Illuminate\Filesystem\Filesystem;
@@ -312,7 +313,7 @@ class ModuleGenerator extends Generator
             $this->cleanModuleJsonFile();
         }
 
-        $this->activator->enable($this->getModule());
+        $this->activator->enable($this->getModule()->find($name));
 
         $this->console->info("Module [{$name}] created successfully.");
 
