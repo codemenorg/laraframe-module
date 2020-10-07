@@ -1,0 +1,62 @@
+{
+  "name": "codemenorg/laraframe-modules",
+  "description": "Laraframe Module Management",
+  "keywords": [
+    "modules",
+    "laravel",
+    "laraframe",
+    "module",
+    "codemen"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ibrahim Al Naz Rana",
+      "email": "ranabd36@gmail.com",
+      "homepage": "https://codemen.org",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=7.3",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "laravel/framework": "^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Codemen\\Modules\\": "src"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Codemen\\Modules\\Tests\\": "tests",
+      "Modules\\Recipe\\": "tests/stubs/valid/Recipe"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Codemen\\Modules\\LaravelModulesServiceProvider"
+      ],
+      "aliases": {
+        "Module": "Codemen\\Modules\\Facades\\Module"
+      }
+    },
+    "branch-alias": {
+      "dev-master": "1.0-dev"
+    }
+  },
+  "scripts": {
+    "update-snapshots": "./vendor/bin/phpunit --no-coverage -d --update-snapshots",
+    "test": "vendor/bin/phpunit",
+    "test-coverage": "vendor/bin/phpunit --debug --coverage-html coverage",
+    "pcf": "vendor/bin/php-cs-fixer fix --verbose"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

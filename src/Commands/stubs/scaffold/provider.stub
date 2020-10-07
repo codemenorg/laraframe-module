@@ -1,0 +1,93 @@
+<?php
+
+namespace $NAMESPACE$;
+
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Database\Eloquent\Factory;
+
+class $CLASS$ extends ServiceProvider
+{
+    /**
+     * @var string $moduleName
+     */
+    protected $moduleName = '$MODULE$';
+
+    /**
+     * @var string $moduleNameLower
+     */
+    protected $moduleNameLower = '$LOWER_NAME$';
+
+    /**
+     * Boot the application events.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->registerTranslations();
+        $this->registerConfig();
+        $this->registerViews();
+        $this->loadMigrationsFrom(module_path($this->moduleName, '$MIGRATIONS_PATH$'));
+    }
+
+    /**
+     * Register the service provider.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->app->register(RouteServiceProvider::class);
+    }
+
+    /**
+     * Register config.
+     *
+     * @return void
+     */
+    protected function registerConfig()
+    {
+        $this->mergeConfigFrom(module_path($this->moduleName, "Config/{$this->moduleNameLower}.php"), $this->moduleNameLower);
+        $this->mergeConfigFrom(module_path($this->moduleName, "Config/{$this->moduleNameLower}_appsettings.php"), $this->moduleNameLower . '::appsettings');
+        $this->mergeConfigFrom(module_path($this->moduleName, "Config/{$this->moduleNameLower}_webpermissions.php"), $this->moduleNameLower . '::webpermissions');
+        $this->mergeConfigFrom(module_path($this->moduleName, "Config/{$this->moduleNameLower}_apipermissions.php"), $this->moduleNameLower . '::apipermissions');
+    }
+
+    /**
+     * Register views.
+     *
+     * @return void
+     */
+    public function registerViews()
+    {
+        $sourcePath = module_path($this->moduleName, '$PATH_VIEWS$');
+        $this->loadViewsFrom([$sourcePath], $this->moduleNameLower);
+    }
+
+    /**
+     * Register translations.
+     *
+     * @return void
+     */
+    public function registerTranslations()
+    {
+        $langPath = resource_path('lang/modules/' . $this->moduleNameLower);
+
+        if (is_dir($langPath)) {
+            $this->loadTranslationsFrom($langPath, $this->moduleNameLower);
+        } else {
+            $this->loadTranslationsFrom(module_path($this->moduleName, '$PATH_LANG$'), $this->moduleNameLower);
+        }
+    }
+
+    /**
+     * Get the services provided by the provider.
+     *
+     * @return array
+     */
+    public function provides()
+    {
+        return [];
+    }
+
+}
