@@ -50,7 +50,7 @@ class ViewMakeCommand extends GeneratorCommand
     protected function getOptions()
     {
         return [
-            ['list', 'l', InputOption::VALUE_OPTIONAL, 'Create list view.', null],
+            ['list', 'l', InputOption::VALUE_NONE, 'Create list view.', null],
         ];
     }
 
