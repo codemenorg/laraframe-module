@@ -60,7 +60,7 @@ class ViewMakeCommand extends GeneratorCommand
         $module = $this->laravel['modules']->findOrFail($this->getModuleName());
 
         if ($this->option('list')) {
-            return Stub::create('/views/index.stub',[
+            return Stub::create('/views/index.stub', [
                 'MODULE_NAME' => $module->getLowerName(),
             ]);
         }
@@ -77,7 +77,13 @@ class ViewMakeCommand extends GeneratorCommand
 
         $generatorPath = GenerateConfigReader::read('views');
 
-        return $path . $generatorPath->getPath() . '/' . $this->getFileName() . '.blade.php';
+        $filePath = $path . $generatorPath->getPath();
+        if (dirname($this->argument('name'))) {
+            $filePath .= '/' . dirname($this->argument('name'));
+        }
+        $filePath .= '/' . basename($this->argument('name'));
+
+        return $filePath . '.blade.php';
     }
 
 }
