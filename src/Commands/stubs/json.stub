@@ -1,6 +1,7 @@
 {
     "name": "$STUDLY_NAME$",
     "alias": "$LOWER_NAME$",
+    "version" : "1.0.0",
     "description": "",
     "keywords": [],
     "priority": 0,

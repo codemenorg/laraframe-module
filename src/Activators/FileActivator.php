@@ -210,11 +210,11 @@ class FileActivator implements ActivatorInterface
      */
     public function hasStatus(Module $module, bool $status): bool
     {
-        if (!isset($this->modulesStatuses[$module->getName()])) {
+        if (!isset($this->modulesStatuses[$module->getName()]['isEnabled'])) {
             return $status === false;
         }
 
-        return $this->modulesStatuses[$module->getName()] === $status;
+        return $this->modulesStatuses[$module->getName()]['isEnabled'] === $status;
     }
 
     /**

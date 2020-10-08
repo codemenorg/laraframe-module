@@ -2,14 +2,15 @@
 
 namespace Codemen\Modules;
 
+use Codemen\Modules\Contracts\ActivatorInterface;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Container\Container;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Illuminate\Translation\Translator;
-use Codemen\Modules\Contracts\ActivatorInterface;
 
 abstract class Module
 {
@@ -18,7 +19,7 @@ abstract class Module
     /**
      * The laravel|lumen application instance.
      *
-     * @var \Illuminate\Contracts\Foundation\Application|\Laravel\Lumen\Application
+     * @var Application|Application
      */
     protected $app;
 
@@ -85,26 +86,6 @@ abstract class Module
     }
 
     /**
-     * Get name in lower case.
-     *
-     * @return string
-     */
-    public function getLowerName(): string
-    {
-        return strtolower($this->name);
-    }
-
-    /**
-     * Get name in studly case.
-     *
-     * @return string
-     */
-    public function getStudlyName(): string
-    {
-        return Str::studly($this->name);
-    }
-
-    /**
      * Get name in snake case.
      *
      * @return string
@@ -122,6 +103,61 @@ abstract class Module
     public function getDescription(): string
     {
         return $this->get('description');
+    }
+
+    /**
+     * Get a specific data from json file by given the key.
+     *
+     * @param string $key
+     * @param null $default
+     *
+     * @return mixed
+     */
+    public function get(string $key, $default = null)
+    {
+        return $this->json()->get($key, $default);
+    }
+
+    /**
+     * Get json contents from the cache, setting as needed.
+     *
+     * @param string $file
+     *
+     * @return Json
+     */
+    public function json($file = null): Json
+    {
+        if ($file === null) {
+            $file = 'module.json';
+        }
+
+        return Arr::get($this->moduleJson, $file, function () use ($file) {
+            return $this->moduleJson[$file] = new Json($this->getPath() . '/' . $file, $this->files);
+        });
+    }
+
+    /**
+     * Get path.
+     *
+     * @return string
+     */
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+
+    /**
+     * Set path.
+     *
+     * @param string $path
+     *
+     * @return $this
+     */
+    public function setPath($path): Module
+    {
+        $this->path = $path;
+
+        return $this;
     }
 
     /**
@@ -152,30 +188,6 @@ abstract class Module
     public function getRequires(): array
     {
         return $this->get('requires');
-    }
-
-    /**
-     * Get path.
-     *
-     * @return string
-     */
-    public function getPath(): string
-    {
-        return $this->path;
-    }
-
-    /**
-     * Set path.
-     *
-     * @param string $path
-     *
-     * @return $this
-     */
-    public function setPath($path): Module
-    {
-        $this->path = $path;
-
-        return $this;
     }
 
     /**
@@ -211,34 +223,57 @@ abstract class Module
     }
 
     /**
-     * Get json contents from the cache, setting as needed.
+     * Get name in lower case.
      *
-     * @param string $file
-     *
-     * @return Json
+     * @return string
      */
-    public function json($file = null) : Json
+    public function getLowerName(): string
     {
-        if ($file === null) {
-            $file = 'module.json';
-        }
-
-        return Arr::get($this->moduleJson, $file, function () use ($file) {
-            return $this->moduleJson[$file] = new Json($this->getPath() . '/' . $file, $this->files);
-        });
+        return strtolower($this->name);
     }
 
     /**
-     * Get a specific data from json file by given the key.
+     * Register a translation file namespace.
      *
-     * @param string $key
-     * @param null $default
-     *
-     * @return mixed
+     * @param string $path
+     * @param string $namespace
+     * @return void
      */
-    public function get(string $key, $default = null)
+    private function loadTranslationsFrom(string $path, string $namespace): void
     {
-        return $this->json()->get($key, $default);
+        $this->translator->addNamespace($namespace, $path);
+    }
+
+    /**
+     * Check if can load files of module on boot method.
+     *
+     * @return bool
+     */
+    protected function isLoadFilesOnBoot(): bool
+    {
+        return config('modules.register.files', 'register') === 'boot' &&
+            // force register method if option == boot && app is AsgardCms
+            !class_exists('\Modules\Core\Foundation\AsgardCms');
+    }
+
+    /**
+     * Register the files from this module.
+     */
+    protected function registerFiles(): void
+    {
+        foreach ($this->get('files', []) as $file) {
+            include $this->path . '/' . $file;
+        }
+    }
+
+    /**
+     * Register the module event.
+     *
+     * @param string $event
+     */
+    protected function fireEvent($event): void
+    {
+        $this->app['events']->dispatch(sprintf('modules.%s.' . $event, $this->getLowerName()), [$this]);
     }
 
     /**
@@ -271,15 +306,6 @@ abstract class Module
     }
 
     /**
-     * Register the module event.
-     *
-     * @param string $event
-     */
-    protected function fireEvent($event): void
-    {
-        $this->app['events']->dispatch(sprintf('modules.%s.' . $event, $this->getLowerName()), [$this]);
-    }
-    /**
      * Register the aliases from this module.
      */
     abstract public function registerAliases(): void;
@@ -297,16 +323,6 @@ abstract class Module
     abstract public function getCachedServicesPath(): string;
 
     /**
-     * Register the files from this module.
-     */
-    protected function registerFiles(): void
-    {
-        foreach ($this->get('files', []) as $file) {
-            include $this->path . '/' . $file;
-        }
-    }
-
-    /**
      * Handle call __toString.
      *
      * @return string
@@ -317,25 +333,25 @@ abstract class Module
     }
 
     /**
+     * Get name in studly case.
+     *
+     * @return string
+     */
+    public function getStudlyName(): string
+    {
+        return Str::studly($this->name);
+    }
+
+    /**
      * Determine whether the given status same with the current module status.
      *
      * @param bool $status
      *
      * @return bool
      */
-    public function isStatus(bool $status) : bool
+    public function isStatus(bool $status): bool
     {
         return $this->activator->hasStatus($this, $status);
-    }
-
-    /**
-     * Determine whether the current module activated.
-     *
-     * @return bool
-     */
-    public function isEnabled() : bool
-    {
-        return $this->activator->hasStatus($this, true);
     }
 
     /**
@@ -343,9 +359,19 @@ abstract class Module
      *
      * @return bool
      */
-    public function isDisabled() : bool
+    public function isDisabled(): bool
     {
         return !$this->isEnabled();
+    }
+
+    /**
+     * Determine whether the current module activated.
+     *
+     * @return bool
+     */
+    public function isEnabled(): bool
+    {
+        return $this->activator->hasStatus($this, true);
     }
 
     /**
@@ -371,6 +397,13 @@ abstract class Module
         $this->flushCache();
 
         $this->fireEvent('disabled');
+    }
+
+    private function flushCache(): void
+    {
+        if (config('modules.cache.enabled')) {
+            $this->cache->store()->flush();
+        }
     }
 
     /**
@@ -405,39 +438,13 @@ abstract class Module
      *
      * @return string
      */
-    public function getExtraPath(string $path) : string
+    public function getExtraPath(string $path): string
     {
         return $this->getPath() . '/' . $path;
     }
 
-    /**
-     * Check if can load files of module on boot method.
-     *
-     * @return bool
-     */
-    protected function isLoadFilesOnBoot(): bool
+    public function getVersion()
     {
-        return config('modules.register.files', 'register') === 'boot' &&
-            // force register method if option == boot && app is AsgardCms
-            !class_exists('\Modules\Core\Foundation\AsgardCms');
-    }
-
-    private function flushCache(): void
-    {
-        if (config('modules.cache.enabled')) {
-            $this->cache->store()->flush();
-        }
-    }
-
-    /**
-     * Register a translation file namespace.
-     *
-     * @param  string  $path
-     * @param  string  $namespace
-     * @return void
-     */
-    private function loadTranslationsFrom(string $path, string $namespace): void
-    {
-        $this->translator->addNamespace($namespace, $path);
+        return $this->json()->get('version', '0.0.0');
     }
 }
