@@ -1,6 +1,6 @@
 <?php
 
-use Codemen\Modules\Module;
+use Codemen\Modules\Facades\Module;
 
 if (!function_exists('module_path')) {
     function module_path($name, $path = '')
