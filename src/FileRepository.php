@@ -256,6 +256,19 @@ abstract class FileRepository implements RepositoryInterface, Countable
     }
 
     /**
+     * Determine whether the given module exist and enabled.
+     *
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasAndEnabled(string $name): bool
+    {
+        return array_key_exists(ucfirst($name), $this->all()) &&
+            $this->find(ucfirst($name))->isEnabled();
+    }
+
+    /**
      * Get list of disabled modules.
      *
      * @return array
